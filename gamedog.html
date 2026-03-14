@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐕 Дрессировка собаки — мобильная версия</title>
+    <style>
+        /* (стили остаются без изменений, как в предыдущем ответе) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1f4d2a, #3f8b5c);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+        .game-container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 250, 220, 0.2);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 15px 20px;
+            box-shadow: 0 20px 30px rgba(0, 30, 0, 0.6);
+            border: 2px solid #ffd966;
+        }
+        h1 { text-align: center; font-size: 2.2rem; color: #fef7aa; text-shadow: 3px 3px 0 #2b6b1a; margin-bottom: 8px; }
+        .score-panel { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 200, 0.7); padding: 8px 15px; border-radius: 40px; border: 2px solid #ffb347; margin-bottom: 10px; }
+        .score-badge { font-size: 1.4rem; font-weight: bold; padding: 5px 20px; border-radius: 40px; background: white; }
+        .positive { background: #ccffb0; color: #1b6b1b; border: 2px solid #3fa30b; }
+        .negative { background: #ffb6b6; color: #a10000; border: 2px solid #ff4d4d; }
+        .commands { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+        .cmd-btn { background: linear-gradient(145deg, #fedb82, #ffaa33); border: none; padding: 12px 20px; border-radius: 50px; font-size: 1.4rem; font-weight: bold; color: #2d4a1a; border: 3px solid #b87c2b; box-shadow: 0 6px 0 #8f6120; cursor: pointer; transition: 0.05s linear; min-width: 130px; }
+        .cmd-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 #8f6120; }
+        .cmd-btn:disabled { opacity: 0.5; transform: translateY(3px); box-shadow: 0 3px 0 #8f6120; pointer-events: none; }
+        .sprite-area { background: #7fa86a; border-radius: 50px; padding: 15px; margin: 10px 0; border: 4px solid #eec15e; min-height: 180px; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 -6px 0 #4f7a3e; }
+        .sprite-box { background: #c2e0b0; border-radius: 40px; padding: 8px; border: 4px solid #5f964c; max-width: 220px; max-height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .sprite-img, .sprite-video { max-width: 100%; max-height: 140px; border-radius: 30px; object-fit: contain; }
+        .chase-container { width: 100%; height: 140px; background: #7da064; border-radius: 60px; position: relative; overflow: hidden; border: 4px solid #caa34b; }
+        .runner { position: absolute; height: 100px; width: auto; transition: left 0.05s linear; filter: drop-shadow(4px 6px 4px rgba(0,0,0,0.4)); max-width: none; }
+        .timer-box { font-size: 2rem; text-align: center; background: #feeaa5; padding: 8px; border-radius: 40px; border: 3px solid #ca8b2a; margin: 8px 0; color: #2f4a1a; font-weight: bold; }
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
+        .action-btn { background: radial-gradient(circle at 30% 20%, #ffe28a, #fcb44a); border: none; font-size: 1.6rem; padding: 12px 30px; border-radius: 50px; border: 4px solid #d1912b; box-shadow: 0 6px 0 #9f691c; cursor: pointer; font-weight: bold; color: #1e3f0e; transition: 0.05s linear; }
+        .action-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 #9f691c; }
+        .action-btn:disabled { opacity: 0.5; transform: translateY(3px); box-shadow: 0 3px 0 #9f691c; pointer-events: none; }
+        .message-area { font-size: 1.4rem; text-align: center; background: rgba(255, 255, 220, 0.9); padding: 12px; border-radius: 50px; margin: 10px 0; border: 3px dashed #e5941e; min-height: 70px; display: flex; align-items: center; justify-content: center; color: #1a4a1a; font-weight: bold; }
+        .control-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+        .ctrl-btn { background: #b8e6a8; border: none; font-size: 1.3rem; padding: 10px 25px; border-radius: 40px; border: 3px solid #4f9e3a; box-shadow: 0 5px 0 #30701e; cursor: pointer; font-weight: bold; color: #154d07; }
+        .ctrl-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #30701e; }
+        footer { text-align: center; margin-top: 8px; color: #ebffc8; font-size: 1rem; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .cmd-btn { font-size: 1.2rem; padding: 10px 12px; min-width: 100px; }
+            .action-btn { font-size: 1.4rem; padding: 10px 20px; }
+            .ctrl-btn { font-size: 1.1rem; padding: 8px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐕 ДРЕССИРОВКА 🐩</h1>
+
+        <div class="score-panel">
+            <span class="score-badge positive" id="positiveScore">😊 +0</span>
+            <span class="score-badge negative" id="negativeScore">😢 -0</span>
+        </div>
+
+        <div class="commands" id="commandButtons">
+            <button class="cmd-btn" id="cmdSit">🪑 СИДЕТЬ</button>
+            <button class="cmd-btn" id="cmdLie">🛌 ЛЕЖАТЬ</button>
+            <button class="cmd-btn" id="cmdStand">🧍 СТОЯТЬ</button>
+        </div>
+
+        <div class="sprite-area" id="spriteArea">
+            <div class="sprite-display" id="spriteDisplay"></div>
+        </div>
+
+        <div id="timerDisplay" class="timer-box">⏳ 3</div>
+
+        <div class="action-buttons" id="actionButtons">
+            <button class="action-btn" id="praiseBtn">👍 ПОХВАЛИТЬ</button>
+            <button class="action-btn" id="punishBtn">👎 НАКАЗАТЬ</button>
+        </div>
+
+        <div id="messageArea" class="message-area">👋 Нажми СТАРТ</div>
+
+        <div class="control-buttons">
+            <button class="ctrl-btn" id="startBtn">▶ СТАРТ</button>
+            <button class="ctrl-btn" id="resetBtn">🔄 ЗАНОВО</button>
+            <button class="ctrl-btn" id="endBtn">⏹ ЗАКОНЧИТЬ</button>
+        </div>
+
+        <footer>🐾 Тренируй с умом</footer>
+    </div>
+
+    <script>
+        (function() {
+            // --- ОТЛАДКА: проверка загрузки скрипта ---
+            alert("Скрипт загружен! Если вы это видите, то скрипт работает.");
+
+            // --- Все ссылки (как в предыдущей версии) ---
+            const SPRITES = {
+                stand: 'https://scozelenenie.ru/wp-content/uploads/2026/03/i-31.webp',
+                lie: 'https://scozelenenie.ru/wp-content/uploads/2026/03/i-30.webp',
+                sit: 'https://scozelenenie.ru/wp-content/uploads/2026/03/th.jpg',
+                tiredHappy: 'https://scozelenenie.ru/wp-content/uploads/2026/03/15c144e8dc552a100b3292d268854499.gif',
+                intruderStatic: 'https://scozelenenie.ru/wp-content/uploads/2026/03/5636861914_455224387f_b.jpg',
+                run: 'https://scozelenenie.ru/wp-content/uploads/2026/03/18f566fa5cf046c1e81fc6c61ce5dc53.gif',
+                intruderRun: 'https://scozelenenie.ru/wp-content/uploads/2026/03/f90022abf4d450695693e2bb6a97cd47.gif',
+                videoHappy: 'https://scozelenenie.ru/wp-content/uploads/2026/03/12433583114824.mp4',
+                videoCry: 'https://scozelenenie.ru/wp-content/uploads/2026/03/1.mp4'
+            };
+
+            // --- Элементы DOM ---
+            const positiveSpan = document.getElementById('positiveScore');
+            const negativeSpan = document.getElementById('negativeScore');
+            const cmdSit = document.getElementById('cmdSit');
+            const cmdLie = document.getElementById('cmdLie');
+            const cmdStand = document.getElementById('cmdStand');
+            const commandDiv = document.getElementById('commandButtons');
+            const spriteDisplay = document.getElementById('spriteDisplay');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const praiseBtn = document.getElementById('praiseBtn');
+            const punishBtn = document.getElementById('punishBtn');
+            const messageArea = document.getElementById('messageArea');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const endBtn = document.getElementById('endBtn');
+
+            // --- Проверка, что элементы найдены ---
+            alert("Элементы DOM: " + (cmdSit ? "кнопки есть" : "нет кнопок"));
+
+            // --- Состояние ---
+            let positive = 0, negative = 0, totalTrainings = 0;
+            let gameActive = false, roundActive = false;
+            let correctAction = null;
+            let timerInterval = null;
+            let timeLeft = 3;
+            let intruderPresent = false, chaseActive = false;
+
+            function updateScores() {
+                positiveSpan.innerText = `😊 +${positive}`;
+                negativeSpan.innerText = `😢 -${negative}`;
+            }
+
+            function enableCommands(enable) {
+                cmdSit.disabled = !enable;
+                cmdLie.disabled = !enable;
+                cmdStand.disabled = !enable;
+            }
+
+            function enableActionButtons(enable) {
+                praiseBtn.disabled = !enable;
+                punishBtn.disabled = !enable;
+            }
+
+            function clearAllTimers() {
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            function showSprite(type) {
+                let src = '';
+                if (type === 'sit') src = SPRITES.sit;
+                else if (type === 'lie') src = SPRITES.lie;
+                else if (type === 'stand') src = SPRITES.stand;
+                else if (type === 'tired') src = SPRITES.tiredHappy;
+                else if (type === 'intruder') src = SPRITES.intruderStatic;
+                else return;
+
+                spriteDisplay.innerHTML = `
+                    <div class="sprite-box">
+                        <img src="${src}" class="sprite-img" alt="${type}" onerror="this.onerror=null; this.parentElement.innerHTML='🚫'">
+                    </div>
+                `;
+            }
+
+            function showVideo(type) {
+                const src = type === 'praise' ? SPRITES.videoHappy : SPRITES.videoCry;
+                spriteDisplay.innerHTML = `
+                    <div class="sprite-box">
+                        <video autoplay muted playsinline class="sprite-video" onerror="this.parentElement.innerHTML='🚫'">
+                            <source src="${src}" type="video/mp4">
+                        </video>
+                    </div>
+                `;
+            }
+
+            function startChaseAnimation() {
+                chaseActive = true;
+                spriteDisplay.innerHTML = `
+                    <div class="chase-container" id="chaseContainer">
+                        <img src="${SPRITES.run}" class="runner" id="dogRunner" style="left: -150px; bottom: 10px;" onerror="this.onerror=null; this.src=''; this.alt='🐕'">
+                        <img src="${SPRITES.intruderRun}" class="runner" id="intruderRunner" style="left: -250px; bottom: 10px;" onerror="this.onerror=null; this.src=''; this.alt='🚶'>
+                    </div>
+                `;
+
+                let dogPos = -150;
+                let intruderPos = -250;
+                const chaseInterval = setInterval(() => {
+                    if (!chaseActive) { clearInterval(chaseInterval); return; }
+                    dogPos += 14;
+                    intruderPos += 8;
+                    const dog = document.getElementById('dogRunner');
+                    const intruder = document.getElementById('intruderRunner');
+                    if (dog && intruder) {
+                        dog.style.left = dogPos + 'px';
+                        intruder.style.left = intruderPos + 'px';
+                        if (dogPos > 1300) {
+                            clearInterval(chaseInterval);
+                            chaseActive = false;
+                            showSprite('tired');
+                            messageArea.innerText = '🐕 Догнал! Похвали?';
+                            startReactionTimer('praise');
+                        }
+                    }
+                }, 30);
+            }
+
+            function startReactionTimer(correct) {
+                correctAction = correct;
+                timeLeft = 3;
+                timerDisplay.innerText = `⏳ ${timeLeft}`;
+                enableActionButtons(true);
+                roundActive = true;
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.innerText = `⏳ ${timeLeft}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        if (roundActive) {
+                            negative++;
+                            updateScores();
+                            messageArea.innerText = '⏰ Время вышло! -1';
+                            roundActive = false;
+                            enableActionButtons(false);
+                            scheduleNextRound();
+                        }
+                    }
+                }, 1000);
+            }
+
+            function handleAction(action) {
+                alert("Нажата кнопка: " + action); // ОТЛАДКА
+                if (!roundActive || !gameActive) {
+                    alert("Игра неактивна или раунд не в процессе");
+                    return;
+                }
+                clearAllTimers();
+                timerDisplay.innerText = '⏳ 3';
+                enableActionButtons(false);
+                roundActive = false;
+
+                const isCorrect = (action === correctAction);
+                if (isCorrect) {
+                    positive++;
+                    messageArea.innerText = '✅ Правильно! +1';
+                } else {
+                    negative++;
+                    messageArea.innerText = '❌ Неправильно! -1';
+                }
+                showVideo(action);
+                updateScores();
+                totalTrainings++;
+
+                if (totalTrainings >= 21) {
+                    finishGame();
+                } else {
+                    setTimeout(() => { if (gameActive) nextRound(); }, 2000);
+                }
+            }
+
+            function finishGame() {
+                gameActive = false;
+                roundActive = false;
+                enableCommands(false);
+                enableActionButtons(false);
+                clearAllTimers();
+                document.getElementById('cmdFas')?.remove();
+
+                let result = '';
+                if (positive > negative * 5) {
+                    result = '🏆 ПОБЕДА! Собака тренирована!';
+                    showSprite('tired');
+                } else if (negative > positive) {
+                    result = '😢 Собака подавлена. Больше тренировок.';
+                    showVideo('cry');
+                } else {
+                    result = '🤝 Ничья. Продолжайте!';
+                    spriteDisplay.innerHTML = '';
+                }
+                messageArea.innerText = result;
+            }
+
+            function scheduleNextRound() {
+                if (!gameActive) return;
+                setTimeout(() => { if (gameActive) nextRound(); }, 1500);
+            }
+
+            function getWrongSprite(command) {
+                const all = ['sit', 'lie', 'stand'];
+                const others = all.filter(c => c !== command);
+                return others[Math.floor(Math.random() * others.length)];
+            }
+
+            function handleCommand(command) {
+                alert("Выбрана команда: " + command); // ОТЛАДКА
+                if (!gameActive || intruderPresent) {
+                    alert("Игра неактивна или присутствует нарушитель");
+                    return;
+                }
+                const isCorrect = Math.random() < 0.9;
+                let displayedSprite;
+                if (isCorrect) {
+                    displayedSprite = command;
+                } else {
+                    displayedSprite = getWrongSprite(command);
+                }
+                showSprite(displayedSprite);
+
+                const commandName = command === 'sit' ? 'сидеть' : command === 'lie' ? 'лежать' : 'стоять';
+                if (isCorrect) {
+                    messageArea.innerText = `🐕 Собака выполнила "${commandName}"! Твой выбор?`;
+                } else {
+                    messageArea.innerText = `😕 Собака сделала не "${commandName}"! Твой выбор?`;
+                }
+                startReactionTimer(isCorrect ? 'praise' : 'punish');
+                enableCommands(false);
+            }
+
+            // --- Назначаем обработчики с проверкой ---
+            cmdSit.addEventListener('click', function(e) {
+                alert("Клик по кнопке СИДЕТЬ");
+                handleCommand('sit');
+            });
+            cmdLie.addEventListener('click', function(e) {
+                alert("Клик по кнопке ЛЕЖАТЬ");
+                handleCommand('lie');
+            });
+            cmdStand.addEventListener('click', function(e) {
+                alert("Клик по кнопке СТОЯТЬ");
+                handleCommand('stand');
+            });
+
+            praiseBtn.addEventListener('click', function(e) {
+                alert("Клик по кнопке ПОХВАЛИТЬ");
+                handleAction('praise');
+            });
+            punishBtn.addEventListener('click', function(e) {
+                alert("Клик по кнопке НАКАЗАТЬ");
+                handleAction('punish');
+            });
+
+            function startReactionTimerForFas() {
+                timeLeft = 3;
+                timerDisplay.innerText = `⏳ ${timeLeft}`;
+                roundActive = true;
+                enableActionButtons(false);
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.innerText = `⏳ ${timeLeft}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        if (roundActive && intruderPresent) {
+                            negative++;
+                            updateScores();
+                            messageArea.innerText = '😞 Нарушитель ушёл. -1';
+                            intruderPresent = false;
+                            document.getElementById('cmdFas')?.remove();
+                            roundActive = false;
+                            totalTrainings++;
+                            if (totalTrainings >= 21) finishGame();
+                            else scheduleNextRound();
+                        }
+                    }
+                }, 1000);
+            }
+
+            function nextRound() {
+                if (!gameActive) return;
+                document.getElementById('cmdFas')?.remove();
+
+                intruderPresent = Math.random() < 0.3;
+                if (intruderPresent) {
+                    showSprite('intruder');
+                    messageArea.innerText = '🚨 НАРУШИТЕЛЬ! ЖМИ ФАС! (3с)';
+                    const fasBtn = document.createElement('button');
+                    fasBtn.id = 'cmdFas';
+                    fasBtn.className = 'cmd-btn';
+                    fasBtn.innerText = '🐕 ФАС!';
+                    fasBtn.addEventListener('click', () => {
+                        alert("Клик по кнопке ФАС!"); // ОТЛАДКА
+                        if (!gameActive || !intruderPresent) return;
+                        clearAllTimers();
+           
